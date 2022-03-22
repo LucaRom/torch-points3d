@@ -1,0 +1,56 @@
+# @package data
+task: segmentation
+#class: dales.DalesDataset
+class: stjohns.stjohnsWrapper
+dataset_name: "stjohns"
+dataroot: data
+use_category: False     #
+#donotcare_class_ids: []
+
+first_subsampling : 0.1 # Minimum distance between points in the samples fed to KPconv
+                        # Very correlated with memory used. Need to verify if linked to this : https://github.com/HuguesTHOMAS/KPConv/issues/135#issuecomment-771032535
+
+# Additional settings for the GridSampling and processed_ba files
+#main_sampler: cylinder # For train and val dataset (choices are : sphere or cylinder)
+main_sampler: sphere
+sampler_radius: 10
+grid_param: ${data.sampler_radius}
+radius_param: ${data.sampler_radius}
+raw_folder_set: viz # Choice between "full", "small" or "viz"
+processed_folder_name: processed_${data.raw_folder_set}_${data.first_subsampling}_${data.grid_param}_${data.radius_param}_${data.main_sampler}
+
+# training parameters
+num_train_tuiles: 20
+num_val_tuiles: 4
+
+#pre_transform:
+#  - transform: GridSampling3D       # Samples on a grid
+#    params:
+#        size: ${data.first_subsampling}
+
+# Important : The AddOnes and add XYZ features are mandatory for KPConv (it is also used in the original paper)
+train_transform:
+  - transform: AddOnes
+  - transform: AddFeatByKey
+    params:
+      add_to_x: True
+      feat_name: 'ones'
+  - transform: XYZFeature
+
+val_transform:
+  - transform: AddOnes
+  - transform: AddFeatByKey
+    params:
+      add_to_x: True
+      feat_name: 'ones'
+  - transform: XYZFeature
+
+test_transform:
+  - transform: AddOnes
+  - transform: AddFeatByKey
+    params:
+      add_to_x: True
+      feat_name: 'ones'
+  - transform: XYZFeature
+
+

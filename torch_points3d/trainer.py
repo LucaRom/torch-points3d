@@ -155,6 +155,10 @@ class Trainer:
             if self._dataset.has_val_loader:
                 self._test_epoch(epoch, "val")
 
+            #Run test only if last test, need to be updated in the config file similar to eval_frequency (Added LR)
+            if epoch != self._cfg.training.epochs: # Checks if it is last test
+                continue
+
             if self._dataset.has_test_loaders:
                 self._test_epoch(epoch, "test")
 

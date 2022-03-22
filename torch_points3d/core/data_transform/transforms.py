@@ -289,6 +289,44 @@ class RandomSphere(object):
             self.__class__.__name__, self._radius, self._center, self._sampling_strategy
         )
 
+class RandomCylinder(object):
+    """Select points within a sphere of a given radius. The centre is chosen randomly within the point cloud.
+
+    Parameters
+    ----------
+    radius: float
+        Radius of the sphere to be sampled.
+    strategy: str
+        choose between `random` and `freq_class_based`. The `freq_class_based` \
+        favors points with low frequency class. This can be used to balance unbalanced datasets
+    center: bool
+        if True then the sphere will be moved to the origin
+    """
+
+    def __init__(self, radius, strategy="random", class_weight_method="sqrt", center=True):
+        self._radius = eval(radius) if isinstance(radius, str) else float(radius)
+        self._sampling_strategy = SamplingStrategy(strategy=strategy, class_weight_method=class_weight_method)
+        self._center = center
+
+    def _process(self, data):
+        # apply sampling strategy
+        random_center = self._sampling_strategy(data)
+        random_center = np.asarray(data.pos[random_center])[np.newaxis]
+        cylinder_sampling = CylinderSampling(self._radius, random_center, align_origin=True)
+        return cylinder_sampling(data)
+
+    def __call__(self, data):
+        if isinstance(data, list):
+            data = [self._process(d) for d in data]
+            #data = self._process(random.choice(data)) #Previously done in dataset
+        else:
+            data = self._process(data)
+        return data
+
+    def __repr__(self):
+        return "{}(radius={}, center={}, sampling_strategy={})".format(
+            self.__class__.__name__, self._radius, self._center, self._sampling_strategy
+        )
 
 class SphereSampling:
     """ Samples points within a sphere

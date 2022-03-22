@@ -5,7 +5,9 @@ from typing import Dict, Any
 import wandb
 from torch.utils.tensorboard import SummaryWriter
 import logging
+import mlflow
 
+from torch_points3d.metrics.confusion_matrix import ConfusionMatrix
 from torch_points3d.models import model_interface
 
 log = logging.getLogger(__name__)
@@ -55,7 +57,7 @@ class BaseTracker:
         self._append_losses(losses)
 
     def finalise(self, *args, **kwargs):
-        """Lifcycle method that is called at the end of an epoch. Use this to compute
+        """ Lifcycle method that is called at the end of an epoch. Use this to compute
         end of epoch metrics.
         """
         self._finalised = True
@@ -80,6 +82,7 @@ class BaseTracker:
         for metric_name, metric_value in metrics.items():
             metric_name = "{}/{}".format(metric_name.replace(self._stage + "_", ""), self._stage)
             self._writer.add_scalar(metric_name, metric_value, step)
+            mlflow.log_metric(metric_name, metric_value, step)
 
     @staticmethod
     def _remove_stage_from_metric_keys(stage, metrics):

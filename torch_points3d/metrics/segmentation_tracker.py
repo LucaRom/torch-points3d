@@ -2,6 +2,7 @@ from typing import Dict, Any
 import torch
 import wandb
 import numpy as np
+import mlflow
 
 from torch_points3d.metrics.confusion_matrix import ConfusionMatrix
 from torch_points3d.metrics.base_tracker import BaseTracker, meter_value
@@ -100,6 +101,13 @@ class SegmentationTracker(BaseTracker):
 
         if verbose:
             metrics["{}_iou_per_class".format(self._stage)] = self._iou_per_class
+            
+            # Include miou per class in mlflow tracker
+            if self._use_tensorboard == True:
+                for k, m in self._iou_per_class.items():
+                    mlflow.log_metric("{}_miou_class_{}".format(self._stage, k), float(m))
+                    #print("{}_miou_class_{}".format(self._stage, k), float(m))
+            
         return metrics
 
     @property
